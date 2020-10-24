@@ -10,7 +10,7 @@
           @keyup.enter.native="handleQuery"
         />
       </el-form-item> -->
-      <el-form-item label="年月" prop="yearMonth">
+      <el-form-item label="年月" prop="yearMonthTime">
         <!-- <el-input
           v-model="newQueryParams.yearMonth"
           placeholder="请输入年月"
@@ -19,7 +19,7 @@
           @keyup.enter.native="handleQuery"
         /> -->
          <el-date-picker
-            v-model="newQueryParams.yearMonth"
+            v-model="newQueryParams.yearMonthTime"
             type="month"
             value-format="yyyy-MM"
             placeholder="选择月">
@@ -180,8 +180,8 @@
         <el-form-item label="逻辑删标识(0 未删 1 已删)" prop="delFlag">
           <el-input v-model="form.delFlag" placeholder="请输入逻辑删标识(0 未删 1 已删)" />
         </el-form-item>
-        <el-form-item label="年月" prop="yearMonth">
-          <el-input v-model="form.yearMonth" placeholder="请输入年月" />
+        <el-form-item label="年月" prop="yearMonthTime">
+          <el-input v-model="form.yearMonthTime" placeholder="请输入年月" />
         </el-form-item>
         <el-form-item label="用户id" prop="userId">
           <el-input v-model="form.userId" placeholder="请输入用户id" />
@@ -242,7 +242,7 @@ export default {
       // },
       newQueryParams: {
           version: null,
-          yearMonth: null,
+          yearMonthTime: null,
           userId: null,
           orderNum: null,
           integral: null
@@ -263,7 +263,7 @@ export default {
         delFlag: [
           { required: true, message: "逻辑删标识(0 未删 1 已删)不能为空", trigger: "blur" }
         ],
-        yearMonth: [
+        yearMonthTime: [
           { required: true, message: "年月不能为空", trigger: "blur" }
         ],
         userId: [
@@ -308,7 +308,7 @@ export default {
         version: null,
         remark: null,
         delFlag: null,
-        yearMonth: null,
+        yearMonthTime: null,
         userId: null,
         orderNum: null,
         integral: null

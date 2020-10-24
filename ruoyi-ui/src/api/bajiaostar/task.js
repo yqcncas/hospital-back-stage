@@ -87,3 +87,11 @@ export function exportTask(query) {
     params: query
   })
 }
+
+export function batchAllot(query) {
+  return request({
+    url: '/bajiaostar/order/task_batch_add',
+    method: 'post',
+    params: query
+  })
+}

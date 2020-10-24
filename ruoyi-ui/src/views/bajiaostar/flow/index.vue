@@ -74,6 +74,16 @@
             </el-option>
         </el-select>
       </el-form-item>
+      <el-form-item label="勤务姓名" >
+        <el-select v-model="queryParams.userId" placeholder="请选择查询用户" clearable size="small">
+           <el-option
+              v-for="item in userIdList"
+              :key="item.userId"
+              :label="item.userName"
+              :value="item.userId">
+            </el-option>
+        </el-select>
+      </el-form-item>
       <!-- <el-form-item label="订单id" prop="orderId">
         <el-input
           v-model="queryParams.orderId"
@@ -147,7 +157,7 @@
       <!-- <el-table-column label="任务id" align="center" prop="taskId" /> -->
       <el-table-column label="任务编号" align="center" prop="taskNo" />
 
-      <el-table-column label="用户id" align="center" prop="userId" />
+      <el-table-column label="勤务姓名" align="center" prop="userName" />
       <el-table-column label="积分" align="center" prop="optIntegral" />
       <el-table-column label="原积分" align="center" prop="originalIntegral" />
       <el-table-column label="更新后积分" align="center" prop="afterIntegral" />
@@ -230,6 +240,7 @@
 
 <script>
 import { listFlow, getFlow, delFlow, addFlow, updateFlow, exportFlow } from "@/api/bajiaostar/flow";
+import { userList } from "@/api/bajiaostar/task";
 import { mapState } from 'vuex'
 export default {
   name: "Flow",
@@ -268,11 +279,14 @@ export default {
         type: null,
         orderId: null,
         taskNo: null,
-        taskId: null
+        taskId: null,
+        userName: null,
+        userId: null
       },
       orderStatus: [],
       // 表单参数
       form: {},
+      userIdList: [],
       // 表单校验
       rules: {
         createBy: [
@@ -308,12 +322,19 @@ export default {
       }
     };
   },
-  created() {
+ async created() {
+    await userList ({userType: 2}).then(res => {
+      console.log(res)
+      this.userIdList = res.data
+    }) 
     this.getList();
       this.getDicts("integral_flow_type").then(response => {
         console.log(response)
       this.orderStatus = response.data;
     });
+  },
+  mounted() {
+    
   },
   methods: {
     /** 查询用户流水列表 */
@@ -321,6 +342,17 @@ export default {
       this.loading = true;
       listFlow(this.queryParams).then(response => {
         this.flowList = response.rows;
+
+        if (this.userIdList.length) {
+          this.flowList.forEach(item => {
+            this.userIdList.forEach(it => {
+              if (item.userId == it.userId) {
+                item.userName = it.userName
+              }
+            })
+          })
+        }
+        console.log(this.flowList)
         this.total = response.total;
         this.loading = false;
       });
@@ -348,7 +380,8 @@ export default {
         type: null,
         orderId: null,
         taskNo: null,
-        taskId: null
+        taskId: null,
+        userName: null
       };
       this.resetForm("form");
     },
@@ -359,6 +392,7 @@ export default {
     },
     /** 重置按钮操作 */
     resetQuery() {
+      this.queryParams.userId = null
       this.resetForm("queryForm");
       this.handleQuery();
     },

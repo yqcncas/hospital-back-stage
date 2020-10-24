@@ -40,6 +40,26 @@
         </el-select>
       </el-form-item>
 
+
+      <el-form-item label="创建时间" prop="taskNo">
+         <el-date-picker
+            v-model="queryParams.createTime"
+            type="date"
+            value-format="yyyy-MM-dd"
+            placeholder="选择日期">
+          </el-date-picker>
+      </el-form-item>
+
+
+      <el-form-item label="预约时间" prop="taskNo">
+         <el-date-picker
+            v-model="queryParams.agreedTime"
+            type="date"
+            value-format="yyyy-MM-dd"
+            placeholder="选择日期">
+          </el-date-picker>
+      </el-form-item>
+
       <el-form-item label="院区选择">
             <el-select
               v-model="queryParams.yqType"
@@ -66,16 +86,11 @@
         </el-select>
       </el-form-item>
 
-         <el-form-item label="二级分类" prop="agreedFlag">
-        <!-- <el-select v-model="queryParams.twoTaskType" placeholder="请选择任务分类">
-            <el-option v-for="item in levelTwo"
-                :key="item.id"
-                :label="item.name"
-                :value="item.id"  />
-        </el-select> -->
+         <!-- <el-form-item label="二级分类" prop="agreedFlag">
+
           <el-input v-model="queryParams.twoTaskType" placeholder="请输入任务分类" />
 
-      </el-form-item>
+      </el-form-item> -->
       <el-form-item label="任务状态" prop="distributeFlag">
         <el-select v-model="queryParams.distributeFlag" placeholder="请选择任务状态" filterable>
             <el-option v-for="item in serchTaskStats"
@@ -273,9 +288,18 @@
           type="info"
           icon="el-icon-s-tools"
           size="mini"
-          @click="handleAllocation(ids)"
+          @click="handleAllocation(ids, 0)"
           v-hasPermi="['bajiaostar:order:batch_merge_add']"
-        >分配</el-button>
+        >合并分配</el-button>
+      </el-col>
+         <el-col :span="1.5">
+        <el-button
+          type="info"
+          icon="el-icon-s-tools"
+          size="mini"
+          @click="handleAllocation(ids, 1)"
+          v-hasPermi="['bajiaostar:order:batch_add']"
+        >批量分配</el-button>
       </el-col>
       <div class="top-right-btn">
         <el-tooltip class="item" effect="dark" content="刷新" placement="top">
@@ -357,7 +381,7 @@
             @click="handleDelete(scope.row)"
             v-hasPermi="['bajiaostar:task:remove']"
           >删除</el-button>
-          <el-button type="primary" size="small" @click = "handleAllocation(scope.row.id)" v-hasPermi="['bajiaostar:order:batch_add']" >分配</el-button>
+          <el-button type="primary" size="small" @click = "handleAllocation(scope.row.id, 0)" v-hasPermi="['bajiaostar:order:batch_add']" >分配</el-button>
            
         </template>
       </el-table-column>
@@ -573,7 +597,7 @@
 </template>
 
 <script>
-import { listTask, getTask, delTask, addTask, updateTask, exportTask, userList, addUserList, mergeAdd } from "@/api/bajiaostar/task";
+import { listTask, getTask, delTask, addTask, updateTask, exportTask, userList, addUserList, mergeAdd, batchAllot } from "@/api/bajiaostar/task";
 import { listAddress } from "@/api/bajiaostar/address";
 import { enumlistType } from "@/api/bajiaostar/type";
 
@@ -724,7 +748,7 @@ export default {
         radioArr: [],
         addressList: [],
         typeOptions: [],
-        
+        allotType: 0
       }
     };
   },
@@ -827,7 +851,14 @@ export default {
         this.loading = false;
       });
     },
-    handleAllocation(id) {
+    handlebatch(id) {
+      if (id == '') {
+        return this.msgError('请先选择要分配的任务')
+      }
+       this.AllocationOpen = true
+    },
+    handleAllocation(id, type) {
+      this.allotType = type
       if (id == '') {
       return this.msgError('请先选择要分配的任务')
       }
@@ -853,33 +884,61 @@ export default {
       if (this.allocationform.taskIntegral < 0 || this.allocationform.taskIntegral.trim() == '') return this.msgError("请输入任务积分");
 
       // this.allocationform.usersId = this.addAllocationUserId
-      console.log(this.addAllocationUserId)
-      this.allocationform.userIds = this.addAllocationUserId.join(',')
-     console.log()
 
-      if (this.ids == '' ) {
-          addUserList(this.allocationform).then(res => {
-      
-              if (res.code === 200) {
-                  this.msgSuccess("分配成功");
-                  this.open = false;
-                  // this.$router.replace('/task/order')   //无痕浏览，无法回退
-              }
-            }).catch(() => {
-              this.msgError("分配失败");
-            })
+      this.allocationform.userIds = this.addAllocationUserId.join(',')
+      console.log(this.allotType)
+        if (this.allotType == 0) {
+          if (this.ids == '' ) {
+              addUserList(this.allocationform).then(res => {
+          
+                  if (res.code === 200) {
+                      this.msgSuccess("分配成功");
+                      this.open = false;
+                      // this.$router.replace('/task/order')   //无痕浏览，无法回退
+                  }
+                }).catch(() => {
+                  this.msgError("分配失败");
+                })
+          } else {
+              mergeAdd(this.allocationform).then(res => {
+          
+                  if (res.code === 200) {
+                      this.msgSuccess("分配成功");
+                      this.open = false;
+                      // this.$router.replace('/task/order')   //无痕浏览，无法回退
+                  }
+                }).catch(() => {
+                  this.msgError("分配失败");
+                })
+          }
       } else {
-          mergeAdd(this.allocationform).then(res => {
-      
-              if (res.code === 200) {
-                  this.msgSuccess("分配成功");
-                  this.open = false;
-                  // this.$router.replace('/task/order')   //无痕浏览，无法回退
-              }
-            }).catch(() => {
-              this.msgError("分配失败");
-            })
+        console.log(this.ids)
+        if (this.ids == '' ) {
+              addUserList(this.allocationform).then(res => {
+          
+                  if (res.code === 200) {
+                      this.msgSuccess("分配成功");
+                      this.open = false;
+                      // this.$router.replace('/task/order')   //无痕浏览，无法回退
+                  }
+                }).catch(() => {
+                  this.msgError("分配失败");
+                })
+          } else {
+              batchAllot(this.allocationform).then(res => {
+          
+                  if (res.code === 200) {
+                      this.msgSuccess("分配成功");
+                      this.open = false;
+                      // this.$router.replace('/task/order')   //无痕浏览，无法回退
+                  }
+                }).catch(() => {
+                  this.msgError("分配失败");
+                })
+          }
+
       }
+     
   
 
 
